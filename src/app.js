@@ -4,7 +4,10 @@ import {
 } from 'react-native'
 import firebase from 'firebase'
 import {
-  Header
+  Header,
+  CardSection,
+  Button,
+  Spinner
 } from './components/common'
 import {
   apiKey,
@@ -16,6 +19,10 @@ import {
 import LoginForm from './components/LoginForm'
 
 class App extends Component {
+  state = {
+    loggedIn: null
+  }
+
   componentWillMount () {
     firebase.initializeApp({
       apiKey,
@@ -24,13 +31,42 @@ class App extends Component {
       storageBucket,
       messagingSenderId
     })
+
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        this.setState({ loggedIn: true })
+      } else {
+        this.setState({ loggedIn: false })
+      }
+    })
+  }
+
+  renderContent () {
+    switch (this.state.loggedIn) {
+      case true:
+        return (
+          <CardSection>
+            <Button onPress={() => firebase.auth().signOut()}>
+              Log Out
+            </Button>
+          </CardSection>
+        )
+      case false:
+        return <LoginForm />
+      default:
+        return (
+          <View>
+            <Spinner size='large' />
+          </View>
+        )
+    }
   }
 
   render () {
     return (
       <View>
         <Header headerText='Authentication' />
-        <LoginForm />
+        {this.renderContent()}
       </View>
     )
   }
